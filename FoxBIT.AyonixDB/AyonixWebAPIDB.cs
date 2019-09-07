@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity.SqlServer;
+using System.Diagnostics;
 using System.Linq;
 using FoxBIT.Ayonix.DB.Models;
 
@@ -11,13 +12,19 @@ namespace FoxBIT.Ayonix.DB
     /// </summary>
     public class AyonixWebAPIDB
     {
+        private static TraceSource _logTraceSource = new TraceSource("DBLog");
+
         /// <summary>
         /// コンストラクタ
         /// </summary>
         public AyonixWebAPIDB()
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AyonixWebAPIDB - Start");
+
             // 下記コードがないとビルド時にEntityFrameworkに必要なDLLがコピーされない
             var instance = SqlProviderServices.Instance;
+
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AyonixWebAPIDB - End");
         }
 
         /// <summary>
@@ -26,6 +33,8 @@ namespace FoxBIT.Ayonix.DB
         /// <returns>取得した顔情報一覧</returns>
         public List<face_sub_ids> GetEnableFaceID()
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"GetEnableFaceID - Start");
+
             List<face_sub_ids> resultFaceSubID = null;
 
             using (var entity = new AyonixWebAPIEntities())
@@ -41,10 +50,11 @@ namespace FoxBIT.Ayonix.DB
                 }
                 catch (Exception err)
                 {
-                    System.Diagnostics.Trace.WriteLine(err.Message);
+                    _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"GetEnableFaceID - {err.Message}");
                 }
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"GetEnableFaceID - End");
             return resultFaceSubID;
         }
 
@@ -55,6 +65,8 @@ namespace FoxBIT.Ayonix.DB
         /// <returns>取得した顔情報一覧</returns>
         public List<face_sub_ids> GetEnableFaceID(string faceID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"GetEnableFaceID - Start Parameter[faceID:{faceID}]");
+
             List<face_sub_ids> resultFaceSubID = null;
 
             // 取得
@@ -69,6 +81,7 @@ namespace FoxBIT.Ayonix.DB
                     .ToList();
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"GetEnableFaceID - End");
             return resultFaceSubID ?? new List<face_sub_ids>();
         }
 
@@ -79,6 +92,8 @@ namespace FoxBIT.Ayonix.DB
         /// <returns>登録結果の顔情報</returns>
         public face_ids AddFaceID(string afid)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AddFaceID - Start Parameter[afid:{afid}]");
+
             face_ids result = null;
             try
             {
@@ -112,9 +127,10 @@ namespace FoxBIT.Ayonix.DB
             }
             catch (Exception err)
             {
-                System.Diagnostics.Trace.WriteLine(err.Message);
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"AddFaceID - {err.Message}");
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AddFaceID - End");
             return result;
         }
 
@@ -125,6 +141,8 @@ namespace FoxBIT.Ayonix.DB
         /// <returns>削除の成否 true:成功 false:失敗</returns>
         public bool DeleteFaceID(string faceID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFaceID - Start Parameter[faceID:{faceID}]");
+
             using (var entity = new AyonixWebAPIEntities())
             {
                 // 削除対象抽出
@@ -136,6 +154,7 @@ namespace FoxBIT.Ayonix.DB
                 // 抽出の成否チェック
                 if (target == null)
                 {
+                    _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"DeleteFaceID - End");
                     return false;
                 }
 
@@ -148,6 +167,7 @@ namespace FoxBIT.Ayonix.DB
                 entity.SaveChanges();
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFaceID - End");
             return true;
         }
 
@@ -159,6 +179,8 @@ namespace FoxBIT.Ayonix.DB
         /// <returns>登録結果の顔情報</returns>
         public face_ids AddFaceSubID(string faceID, string afid)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AddFaceSubID - Start Parameter[faceID:{faceID}, afid:{afid}]");
+
             face_ids result = new face_ids() { id = faceID };
 
             using (var entity = new AyonixWebAPIEntities())
@@ -173,6 +195,7 @@ namespace FoxBIT.Ayonix.DB
                 // 取得の成否チェック
                 if (maxSubID == null)
                 {
+                    _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"AddFaceSubID - End");
                     return null;
                 }
 
@@ -196,6 +219,7 @@ namespace FoxBIT.Ayonix.DB
                 entity.SaveChanges();
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AddFaceSubID - End");
             return result;
         }
 
@@ -208,6 +232,8 @@ namespace FoxBIT.Ayonix.DB
         /// <returns>更新の成否 true:成功 false:失敗</returns>
         public bool UpdateFaceSubID(string faceID, string faceSubID, string afid)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"UpdateFaceSubID - Start Parameter[faceID:{faceID}, faceSubID:{faceSubID}, afid:{afid}]");
+
             using (var entity = new AyonixWebAPIEntities())
             {
                 // 更新対象抽出
@@ -219,6 +245,7 @@ namespace FoxBIT.Ayonix.DB
                 // 抽出の成否チェック
                 if (target == null)
                 {
+                    _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"UpdateFaceSubID - End");
                     return false;
                 }
 
@@ -231,6 +258,7 @@ namespace FoxBIT.Ayonix.DB
                 entity.SaveChanges();
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"UpdateFaceSubID - End");
             return true;
         }
 
@@ -242,6 +270,8 @@ namespace FoxBIT.Ayonix.DB
         /// <returns>削除の成否 true:成功 false:失敗</returns>
         public bool DeleteFaceSubID(string faceID, string faceSubID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"UpdateFaceSubID - Start Parameter[faceID:{faceID}, faceSubID:{faceSubID}]");
+
             using (var entity = new AyonixWebAPIEntities())
             {
                 // 削除対象抽出
@@ -253,6 +283,7 @@ namespace FoxBIT.Ayonix.DB
                 // 抽出の成否チェック
                 if (target == null)
                 {
+                    _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"UpdateFaceSubID - End");
                     return false;
                 }
 
@@ -265,6 +296,7 @@ namespace FoxBIT.Ayonix.DB
                 entity.SaveChanges();
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"UpdateFaceSubID - End");
             return true;
         }
     }
