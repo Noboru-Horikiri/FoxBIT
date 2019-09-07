@@ -1,6 +1,7 @@
 ﻿extern alias AyonixLib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -20,6 +21,8 @@ namespace FoxBIT.Ayonix.IPCCommon
     /// </summary>
     public class AyonixSharedClass : SharedClass
     {
+        private static TraceSource _logTraceSource = new TraceSource("IPCCommonLog");
+
         // AyonixFaceエンジン
         private AyonixFaceID _faceEngine;
         // PinnedAfid
@@ -54,6 +57,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// </summary>
         public void Initialize()
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"Initialize - Start");
+
             var faceEnginePath = $@"{System.AppDomain.CurrentDomain.BaseDirectory}data\engine";
 
             try
@@ -66,13 +71,16 @@ namespace FoxBIT.Ayonix.IPCCommon
             }
             catch (Exception err)
             {
-                System.Diagnostics.Trace.WriteLine($"{err.Message}:Ayonix.FaceID.dllはAyonixFaceID.dll, FreeImage.dllに依存しているので確認");
-                throw new Exception($"{err.Message}:Ayonix.FaceID.dllはAyonixFaceID.dll, FreeImage.dllに依存しているので確認");
+                //Ayonix.FaceID.dllはAyonixFaceID.dll, FreeImage.dllに依存しているので確認
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"Initialize - {err.Message}");
+                throw new Exception($"{err.Message}:{((FaceIDException)err).error}");
             }
             _pinnedAfids = null;
             _afidList = new List<byte[]>();
             _faceInfomationList = new List<AFIDInfomation>();
             _objLock = new object();
+
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"Initialize - End");
         }
 
         /// <summary>
@@ -82,10 +90,14 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <returns>変換画像</returns>
         private Bitmap ConvertBase64ImageToBitmap(string base64Image)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"ConvertBase64ImageToBitmap - Start Parameter[base64Image:{base64Image}]");
+
             var imageBytes = Convert.FromBase64String(base64Image);
             using (var stream = new MemoryStream())
             {
                 stream.Write(imageBytes, 0, imageBytes.Length);
+
+                _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"ConvertBase64ImageToBitmap - End");
                 return new Bitmap(stream);
             }
         }
@@ -97,10 +109,14 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <returns>変換後のByte配列</returns>
         private static byte[] StringToByteArray(String hex)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"StringToByteArray - Start Parameter[hex:{hex}]");
+
             int NumberChars = hex.Length;
             byte[] bytes = new byte[NumberChars / 2];
             for (int i = 0; i < NumberChars; i += 2)
                 bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"StringToByteArray - End");
             return bytes;
         }
 
@@ -111,6 +127,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <returns>結果顔リスト</returns>
         private Face[] CreateFaceListInfomation(Bitmap bitmap)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CreateFaceListInfomation - Start");
+
             // ビットマップからAyonixイメージに変換
             AyonixLib.Ayonix.FaceID.Image img = new AyonixLib.Ayonix.FaceID.Image(bitmap);
 
@@ -121,12 +139,14 @@ namespace FoxBIT.Ayonix.IPCCommon
             // 顔の検出チェック
             if (faces.Count() < 1)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"CreateFaceListInfomation - 顔が検出できませんでした。");
                 throw new Exception("顔が検出できませんでした。");
             }
 
             // 顔詳細を取得
             _faceEngine.PreprocessFaces(faces);
             
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CreateFaceListInfomation - End");
             // 一番サイズが大きい順で並べ替え
             return faces.OrderByDescending(f => f.location.w + f.location.h).ToArray();
         }
@@ -140,6 +160,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <param name="afidString">登録対象AFID文字列</param>
         private void AddPinnedAfid(string faceID, string faceSubID, byte[] afid, string afidString)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AddPinnedAfid - Start Parameter[faceID:{faceID}, faceSubID:{faceSubID}, afidString:{afidString}]");
+
             // AFIDに紐づく顔情報を作成
             var afidInfomation = new AFIDInfomation()
             {
@@ -159,6 +181,8 @@ namespace FoxBIT.Ayonix.IPCCommon
                 // AFIDリストでPinnedAfidリストを構築
                 _faceEngine.PinAfids(_afidList, out _pinnedAfids);
             }
+
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AddPinnedAfid - End");
         }
 
         /// <summary>
@@ -170,6 +194,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <param name="afidString">更新対象AFID文字列</param>
         private void UpdatePinnedAfid(string faceID, string faceSubID, byte[] afid, string afidString)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"UpdatePinnedAfid - Start Parameter[faceID:{faceID}, faceSubID:{faceSubID}, afidString:{afidString}]");
+
             // 更新対象のインデックスで絞込む
             var index = _faceInfomationList
                 //.Select((fi, i) => new { fi = fi, index = i })
@@ -200,6 +226,8 @@ namespace FoxBIT.Ayonix.IPCCommon
                 // AFIDリストでPinnedAfidリストを構築
                 _faceEngine.PinAfids(_afidList, out _pinnedAfids);
             }
+
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"UpdatePinnedAfid - End");
         }
 
         /// <summary>
@@ -208,6 +236,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <param name="faceID">削除対象FaceID</param>
         private void DeletePinnedAfid(string faceID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeletePinnedAfid - Start Parameter[faceID:{faceID}]");
+
             // 削除対象のインデックスで絞込む
             var indexList = _faceInfomationList
                 //.Select((fi, i) => new { fi = fi, index = i })
@@ -219,6 +249,7 @@ namespace FoxBIT.Ayonix.IPCCommon
             // 絞り込み結果チェック
             if (indexList.Count == 0)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"DeletePinnedAfid - End");
                 return;
             }
 
@@ -234,6 +265,8 @@ namespace FoxBIT.Ayonix.IPCCommon
                 // AFIDリストでPinnedAfidリストを構築
                 _faceEngine.PinAfids(_afidList, out _pinnedAfids);
             }
+
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeletePinnedAfid - End");
         }
 
         /// <summary>
@@ -243,6 +276,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <param name="faceSubID">削除対象FaceSubID</param>
         private void DeletePinnedAfid(string faceID, string faceSubID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeletePinnedAfid - Start Parameter[faceID:{faceID}, faceSubID:{faceSubID}]");
+
             // 削除対象のインデックスで絞込む
             var index = _faceInfomationList
                 //.Select((fi, i) => new { fi = fi, index = i })
@@ -260,6 +295,8 @@ namespace FoxBIT.Ayonix.IPCCommon
                 // AFIDリストでPinnedAfidリストを構築
                 _faceEngine.PinAfids(_afidList, out _pinnedAfids);
             }
+
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeletePinnedAfid - End");
         }
 
         /// <summary>
@@ -268,6 +305,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <returns>AFIDリスト数</returns>
         public int CountAFID()
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CountAFID - Start");
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CountAFID - End");
             return _afidList.Count;
         }
 
@@ -278,6 +317,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <returns>検出顔数</returns>
         public int CountFace(string base64Image)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CountFace - Start Parameter[base64Image:{base64Image}]");
+
             // 画像から顔情報取得
             Face[] faceList;
             using (var bitmap = ConvertBase64ImageToBitmap(base64Image))
@@ -285,6 +326,7 @@ namespace FoxBIT.Ayonix.IPCCommon
                 faceList = CreateFaceListInfomation(bitmap);
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CountFace - End");
             return faceList.Count();
         }
 
@@ -293,6 +335,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// </summary>
         public void LoadFaces()
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"LoadFaces - Start");
+
             // AFIDをDBから取得
             var enableFaceSubID = _ayonixWebAPIDB.GetEnableFaceID();
 
@@ -302,6 +346,7 @@ namespace FoxBIT.Ayonix.IPCCommon
                 AddPinnedAfid(efsi.id, efsi.sub_id, StringToByteArray(efsi.afid), efsi.afid);
             });
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"LoadFaces - End");
         }
 
         /// <summary>
@@ -311,6 +356,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <returns>登録結果</returns>
         public ResultDetectedFace CreateFaceID(string base64Image)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CreateFaceID - Start Parameter[base64Image:{base64Image}]");
+
             // 画像から顔情報取得
             Face[] faceList;
             using (var bitmap = ConvertBase64ImageToBitmap(base64Image))
@@ -326,6 +373,7 @@ namespace FoxBIT.Ayonix.IPCCommon
             // AFID作成失敗
             if (afid == null)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"CreateFaceID - AFIDの作成に失敗しました。");
                 throw new Exception("AFIDの作成に失敗しました。");
             }
 
@@ -338,6 +386,7 @@ namespace FoxBIT.Ayonix.IPCCommon
             // AFIDリストに追加
             AddPinnedAfid(resultFaceID.id, resultFaceID.face_sub_ids.First().sub_id, afid, afidString);
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CreateFaceID - End");
             // 結果作成
             return new ResultDetectedFace()
             {
@@ -364,12 +413,16 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <param name="faceID">削除対象FaceID</param>
         public void DeleteFaceID(string faceID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFaceID - Start Parameter[faceID:{faceID}]");
+
             // DB上の対象FaceIDの削除フラグをONにする
             if (!_ayonixWebAPIDB.DeleteFaceID(faceID))
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"DeleteFaceID - AFIDのDB削除フラグの更新に失敗しました。");
                 throw new Exception("AFIDのDB削除フラグの更新に失敗しました。");
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFaceID - End");
             // AFIDリストから削除
             DeletePinnedAfid(faceID);
         }
@@ -382,6 +435,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <returns>追加結果</returns>
         public ResultDetectedFace AddFace(string faceID, string base64Image)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AddFace - Start Parameter[faceID:{faceID}, base64Image:{base64Image}]");
+
             // 画像から顔情報取得
             Face[] faceList;
             using (var bitmap = ConvertBase64ImageToBitmap(base64Image))
@@ -397,6 +452,7 @@ namespace FoxBIT.Ayonix.IPCCommon
             // AFID作成失敗
             if (afid == null)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"AddFace - AFIDの作成に失敗しました。");
                 throw new Exception("AFIDの作成に失敗しました。");
             }
 
@@ -407,12 +463,14 @@ namespace FoxBIT.Ayonix.IPCCommon
             var resultFaceID = _ayonixWebAPIDB.AddFaceSubID(faceID, afidString);
             if (resultFaceID == null)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"AddFace - AFIDのDB登録に失敗しました。");
                 throw new Exception("AFIDのDB登録に失敗しました。");
             }
 
             // AFIDリストに追加
             AddPinnedAfid(resultFaceID.id, resultFaceID.face_sub_ids.First().sub_id, afid, afidString);
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AddFace - End");
             // 結果作成
             return new ResultDetectedFace()
             {
@@ -441,6 +499,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <param name="base64Image">Base64画像文字列</param>
         public void UpdateFace(string faceID, string faceSubID, string base64Image)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"UpdateFace - Start Parameter[faceID:{faceID}, faceSubID:{faceSubID}, base64Image:{base64Image}]");
+
             // 画像から顔情報取得
             Face[] faceList;
             using (var bitmap = ConvertBase64ImageToBitmap(base64Image))
@@ -456,6 +516,7 @@ namespace FoxBIT.Ayonix.IPCCommon
             // AFID作成失敗
             if (afid == null)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"UpdateFace - AFIDの作成に失敗しました。");
                 throw new Exception("AFIDの作成に失敗しました。");
             }
 
@@ -465,9 +526,11 @@ namespace FoxBIT.Ayonix.IPCCommon
             // DB上の対象FaceID, FaceSubIDのAFIDを更新する
             if (!_ayonixWebAPIDB.UpdateFaceSubID(faceID, faceSubID, afidString))
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"UpdateFace - AFIDの更新に失敗しました。");
                 throw new Exception("AFIDの更新に失敗しました。");
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"UpdateFace - End");
             // AFIDリストを更新
             UpdatePinnedAfid(faceID, faceSubID, afid, afidString);
         }
@@ -479,12 +542,16 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <param name="faceSubID">削除対象FaceSubID</param>
         public void DeleteFaceID(string faceID, string faceSubID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFaceID - Start Parameter[faceID:{faceID}, faceSubID:{faceSubID}]");
+
             // DB上の対象FaceID, FaceSubIDのAFIDの削除フラグをONにする
             if (!_ayonixWebAPIDB.DeleteFaceSubID(faceID, faceSubID))
             {
+                _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFaceID - AFIDのDB削除フラグの更新に失敗しました。");
                 throw new Exception("AFIDのDB削除フラグの更新に失敗しました。");
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFaceID - End");
             // AFIDリストから削除
             DeletePinnedAfid(faceID, faceSubID);
         }
@@ -496,8 +563,11 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <returns>比較結果</returns>
         public List<ResultComparedFace> CompareFace(string base64Image)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CompareFace - Start Parameter[base64Image:{base64Image}]");
+
             if (_pinnedAfids == null)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"CompareFace - AFIDが登録されていません。");
                 throw new Exception("AFIDが登録されていません。");
             }
 
@@ -520,6 +590,7 @@ namespace FoxBIT.Ayonix.IPCCommon
                 // AFID作成失敗
                 if (afid == null)
                 {
+                    _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"CompareFace - AFIDの作成に失敗しました。");
                     throw new Exception("AFIDの作成に失敗しました。");
                 }
 
@@ -554,6 +625,7 @@ namespace FoxBIT.Ayonix.IPCCommon
                 });
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CompareFace - End");
             return resultComparedFaces;
         }
 
@@ -564,6 +636,8 @@ namespace FoxBIT.Ayonix.IPCCommon
         /// <returns>取得結果</returns>
         public ResultFaceID GetFaceID(string faceID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"GetFaceID - Start Parameter[faceID:{faceID}]");
+
             var enableFaceSubID = _ayonixWebAPIDB.GetEnableFaceID(faceID);
 
             if (enableFaceSubID.Count() == 0)
@@ -577,6 +651,7 @@ namespace FoxBIT.Ayonix.IPCCommon
                 FaceSubID = enableFaceSubID.Select(fsi => fsi.sub_id).ToList()
             };
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"GetFaceID - End");
             return resultFaceID;
         }
     }
