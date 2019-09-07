@@ -753,15 +753,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:AyonixAPIService"
-        "ProductCode" = "8:{4C9BD856-9F52-44FB-890A-74E983EEEB1D}"
-        "PackageCode" = "8:{2EE24A30-FD7B-40EC-A59F-460D1A57D2C0}"
+        "ProductCode" = "8:{586CE2E4-E678-45EC-9D7B-2DDDB7F6A73A}"
+        "PackageCode" = "8:{3DF07767-C95D-4B0D-BA20-1F3C4D674534}"
         "UpgradeCode" = "8:{09292E17-5AF8-4BBA-BA9D-26A9A3013DE0}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
-        "RemovePreviousVersions" = "11:FALSE"
+        "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.0.0"
+        "ProductVersion" = "8:1.1.1"
         "Manufacturer" = "8:FoxBIT"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1275,7 +1275,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_643AEB3CBEDA47C998CAE179D09AAED8"
             {
-            "SourcePath" = "8:..\\AyonixAPIService\\obj\\x64\\Debug\\AyonixAPIService.exe"
+            "SourcePath" = "8:..\\AyonixAPIService\\obj\\x64\\Release\\AyonixAPIService.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_93E306CD65D6413198D03EDAFDFE17C9"

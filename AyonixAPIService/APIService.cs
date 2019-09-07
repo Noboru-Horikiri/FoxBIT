@@ -11,6 +11,8 @@ namespace FoxBIT.Ayonix
     /// </summary>
     public partial class APIService : ServiceBase
     {
+        private static TraceSource _logTraceSource = new TraceSource("ServiceLog");
+
         /// <summary>
         /// IPCサーバー
         /// </summary>
@@ -31,17 +33,25 @@ namespace FoxBIT.Ayonix
         protected override void OnStart(string[] args)
         {
             //Debugger.Launch();
-            Trace.WriteLine("OnStartしました。");
-            
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"OnStart - Start");
+
             // IPCサーバー初期化
-            IPCServer = new Server<AyonixSharedClass>()
+            try
             {
-                PortName = IPCConst.PORT_NAME,
-                URI = IPCConst.URI,
-                AuthorizedGroup = IPCConst.AUTHORIZED_GROUP
-            };
-            IPCServer.Create();
-            IPCServer.SharedObj.Initialize();
+                IPCServer = new Server<AyonixSharedClass>()
+                {
+                    PortName = IPCConst.PORT_NAME,
+                    URI = IPCConst.URI,
+                    AuthorizedGroup = IPCConst.AUTHORIZED_GROUP
+                };
+                IPCServer.Create();
+                IPCServer.SharedObj.Initialize();
+            }
+            catch (System.Exception err)
+            {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"OnStart - {err.Message}");
+                throw err;
+            }
 
             // AFIDをDBから読込み
             try
@@ -50,11 +60,11 @@ namespace FoxBIT.Ayonix
             }
             catch (System.Exception err)
             {
-                Trace.WriteLine(err.Message);
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"OnStart - {err.Message}");
                 throw err;
             }
 
-            Trace.WriteLine($"{IPCServer.SharedObj.CountAFID()}件");
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"OnStart - End AFID[{IPCServer.SharedObj.CountAFID()}]");
         }
 
         /// <summary>
@@ -62,9 +72,9 @@ namespace FoxBIT.Ayonix
         /// </summary>
         protected override void OnStop()
         {
-            Trace.WriteLine("OnStopしました。");
-
-            Trace.WriteLine($"{IPCServer.SharedObj.CountAFID()}件");
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"OnStop - Start");
+            
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"OnStop - End Result[CountAFID:{IPCServer.SharedObj.CountAFID()}]");
         }
     }
 }
