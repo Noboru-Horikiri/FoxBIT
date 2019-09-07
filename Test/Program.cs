@@ -9,17 +9,30 @@ using System.Net.Http.Headers;
 using System.Drawing;
 using System.IO;
 
+using System.Diagnostics;
+
 namespace Test
 {
     class Program
     {
         private static string BaseAddress { get; set; } = "http://localhost/";
         private static string RootAddress { get; set; } = "Ayonix/webapi";
-        
+
+
+        private static TraceSource logTraceSource = new TraceSource("LogTraceSource");
 
         static void Main(string[] args)
         {
-            TestWebAPI();
+            //TestWebAPI();
+            //TestTrace();
+            CheckResult(GetFaceID("00000003"));
+        }
+
+        static void TestTrace()
+        {
+            logTraceSource.TraceEvent(TraceEventType.Information, 3, "インフォ3");
+            logTraceSource.TraceEvent(TraceEventType.Information, 4, "インフォ4");
+            
         }
 
         static void TestWebAPI()
