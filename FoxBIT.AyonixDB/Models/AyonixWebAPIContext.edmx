@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="AyonixWebAPIModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="face_ids">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="varchar" MaxLength="8" Nullable="false" />
+          <Property Name="deleted" Type="bit" Nullable="false" />
+          <Property Name="created_at" Type="datetime" Nullable="false" />
+          <Property Name="deleted_at" Type="datetime" />
+        </EntityType>
+        <EntityType Name="face_sub_ids">
+          <Key>
+            <PropertyRef Name="id" />
+            <PropertyRef Name="sub_id" />
+          </Key>
+          <Property Name="id" Type="varchar" MaxLength="8" Nullable="false" />
+          <Property Name="sub_id" Type="varchar" MaxLength="8" Nullable="false" />
+          <Property Name="afid" Type="varchar" MaxLength="3072" Nullable="false" />
+          <Property Name="deleted" Type="bit" Nullable="false" />
+          <Property Name="created_at" Type="datetime" Nullable="false" />
+          <Property Name="updated_at" Type="datetime" />
+          <Property Name="deleted_at" Type="datetime" />
+        </EntityType>
+        <Association Name="FK_face_ids_face_sub_ids">
+          <End Role="face_ids" Type="Self.face_ids" Multiplicity="1" />
+          <End Role="face_sub_ids" Type="Self.face_sub_ids" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="face_ids">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="face_sub_ids">
+              <PropertyRef Name="id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="AyonixWebAPIModelStoreContainer">
+          <EntitySet Name="face_ids" EntityType="Self.face_ids" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="face_sub_ids" EntityType="Self.face_sub_ids" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_face_ids_face_sub_ids" Association="Self.FK_face_ids_face_sub_ids">
+            <End Role="face_ids" EntitySet="face_ids" />
+            <End Role="face_sub_ids" EntitySet="face_sub_ids" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="AyonixWebAPIModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="face_ids">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="String" MaxLength="8" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="deleted" Type="Boolean" Nullable="false" />
+          <Property Name="created_at" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="deleted_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="face_sub_ids" Relationship="Self.FK_face_ids_face_sub_ids" FromRole="face_ids" ToRole="face_sub_ids" />
+        </EntityType>
+        <EntityType Name="face_sub_ids">
+          <Key>
+            <PropertyRef Name="id" />
+            <PropertyRef Name="sub_id" />
+          </Key>
+          <Property Name="id" Type="String" MaxLength="8" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="sub_id" Type="String" MaxLength="8" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="afid" Type="String" MaxLength="3072" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="deleted" Type="Boolean" Nullable="false" />
+          <Property Name="created_at" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="updated_at" Type="DateTime" Precision="3" />
+          <Property Name="deleted_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="face_ids" Relationship="Self.FK_face_ids_face_sub_ids" FromRole="face_sub_ids" ToRole="face_ids" />
+        </EntityType>
+        <Association Name="FK_face_ids_face_sub_ids">
+          <End Role="face_ids" Type="Self.face_ids" Multiplicity="1" />
+          <End Role="face_sub_ids" Type="Self.face_sub_ids" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="face_ids">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="face_sub_ids">
+              <PropertyRef Name="id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="AyonixWebAPIEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="face_ids" EntityType="Self.face_ids" />
+          <EntitySet Name="face_sub_ids" EntityType="Self.face_sub_ids" />
+          <AssociationSet Name="FK_face_ids_face_sub_ids" Association="Self.FK_face_ids_face_sub_ids">
+            <End Role="face_ids" EntitySet="face_ids" />
+            <End Role="face_sub_ids" EntitySet="face_sub_ids" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="AyonixWebAPIModelStoreContainer" CdmEntityContainer="AyonixWebAPIEntities">
+          <EntitySetMapping Name="face_ids">
+            <EntityTypeMapping TypeName="AyonixWebAPIModel.face_ids">
+              <MappingFragment StoreEntitySet="face_ids">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="deleted" ColumnName="deleted" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+                <ScalarProperty Name="deleted_at" ColumnName="deleted_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="face_sub_ids">
+            <EntityTypeMapping TypeName="AyonixWebAPIModel.face_sub_ids">
+              <MappingFragment StoreEntitySet="face_sub_ids">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="sub_id" ColumnName="sub_id" />
+                <ScalarProperty Name="afid" ColumnName="afid" />
+                <ScalarProperty Name="deleted" ColumnName="deleted" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+                <ScalarProperty Name="updated_at" ColumnName="updated_at" />
+                <ScalarProperty Name="deleted_at" ColumnName="deleted_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="なし" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
