@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
@@ -18,6 +19,8 @@ namespace FoxBIT.Ayonix.Controllers
     [RoutePrefix("webapi")]
     public class WebAPIController : ApiController
     {
+        private static TraceSource _logTraceSource = new TraceSource("WebAPILog");
+
 #if DEBUG
         private static Bitmap DrawRect(Bitmap srcBmp, ResultDetectedFace resultDetectedFace)
         {
@@ -42,9 +45,12 @@ namespace FoxBIT.Ayonix.Controllers
         [Route("createfaceid")]
         public async Task<IHttpActionResult> CreateFaceID()
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CreateFaceID - Start");
+
             // コンテンツが "multipart/form-data" かチェック
             if (!Request.Content.IsMimeMultipartContent())
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"CreateFaceID - multipart/form-data 以外はサポートされていません。");
                 throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
             }
 
@@ -57,10 +63,12 @@ namespace FoxBIT.Ayonix.Controllers
             // 画像枚数チェック
             if (contents.Count == 0)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"CreateFaceID - 画像ファイルがアップロードされていません。");
                 return InternalServerError(new Exception("画像ファイルがアップロードされていません。"));
             }
             if (contents.Count > 1)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"CreateFaceID - 複数の画像ファイルがアップロードされました。処理対象の画像ファイルは1つのみです。");
                 return InternalServerError(new Exception("複数の画像ファイルがアップロードされました。処理対象の画像ファイルは1つのみです。"));
             }
 
@@ -81,10 +89,12 @@ namespace FoxBIT.Ayonix.Controllers
                     var countFace = WebApiApplication.IPCClient.SharedObj.CountFace(base64Image);
                     if (countFace == 0)
                     {
+                        _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"CreateFaceID - 画像ファイルから顔を検出できません。");
                         return InternalServerError(new Exception("画像ファイルから顔を検出できません。"));
                     }
                     if (countFace > 1)
                     {
+                        _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"CreateFaceID - 画像ファイルから複数の顔を検出しました。");
                         return InternalServerError(new Exception("画像ファイルから複数の顔を検出しました。"));
                     }
 
@@ -100,9 +110,11 @@ namespace FoxBIT.Ayonix.Controllers
             }
             catch (Exception err)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"CreateFaceID - {err.Message}");
                 return InternalServerError(new Exception(err.Message));
             }
-            
+
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CreateFaceID - End");
             // レスポンス作成
             return Ok(
                 new DetectedFace()
@@ -128,9 +140,12 @@ namespace FoxBIT.Ayonix.Controllers
         [Route("deletefaceid/{faceID}")]
         public IHttpActionResult DeleteFaceID(string faceID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFaceID - Start Parameter[faceID:{faceID}]");
+
             // IDチェック
             if (faceID.Length != 8)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"DeleteFaceID - 不正なIDです。");
                 return InternalServerError(new Exception("不正なIDです。"));
             }
 
@@ -141,9 +156,11 @@ namespace FoxBIT.Ayonix.Controllers
             }
             catch (Exception err)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"DeleteFaceID - {err.Message}");
                 return InternalServerError(new Exception(err.Message));
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFaceID - End");
             return Ok();
         }
 
@@ -156,15 +173,19 @@ namespace FoxBIT.Ayonix.Controllers
         [Route("addface/{faceID}")]
         public async Task<IHttpActionResult> AddFace(string faceID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AddFace - Start Parameter[faceID:{faceID}]");
+
             // IDチェック
             if (faceID.Length != 8)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"AddFace - 不正なIDです。");
                 return InternalServerError(new Exception("不正なIDです。"));
             }
 
             // コンテンツが "multipart/form-data" かチェック
             if (!Request.Content.IsMimeMultipartContent())
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"AddFace - multipart/form-data 以外はサポートされていません。");
                 throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
             }
 
@@ -177,6 +198,7 @@ namespace FoxBIT.Ayonix.Controllers
             // 画像枚数チェック
             if (contents.Count == 0)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"AddFace - 画像ファイルがアップロードされていません。");
                 return InternalServerError(new Exception("画像ファイルがアップロードされていません。"));
             }
 
@@ -197,10 +219,12 @@ namespace FoxBIT.Ayonix.Controllers
                     var countFace = WebApiApplication.IPCClient.SharedObj.CountFace(base64Image);
                     if (countFace == 0)
                     {
+                        _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"AddFace - 画像ファイルから顔を検出できません。");
                         return InternalServerError(new Exception("画像ファイルから顔を検出できません。"));
                     }
                     if (countFace > 1)
                     {
+                        _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"AddFace - 画像ファイルから複数の顔を検出しました。");
                         return InternalServerError(new Exception("画像ファイルから複数の顔を検出しました。"));
                     }
 
@@ -224,6 +248,7 @@ namespace FoxBIT.Ayonix.Controllers
                 }
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"AddFace - End");
             return Ok(detectedFaces);
         }
 
@@ -237,9 +262,12 @@ namespace FoxBIT.Ayonix.Controllers
         [Route("updateface/{faceID}/{subID}")]
         public async Task<IHttpActionResult> UpdateFace(string faceID, string subID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"UpdateFace - Start Parameter[faceID:{faceID}, subID:{subID}]");
+
             // コンテンツが "multipart/form-data" かチェック
             if (!Request.Content.IsMimeMultipartContent())
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"UpdateFace - multipart/form-data 以外はサポートされていません。");
                 throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
             }
 
@@ -252,10 +280,12 @@ namespace FoxBIT.Ayonix.Controllers
             // 画像枚数チェック
             if (contents.Count == 0)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"UpdateFace - 画像ファイルがアップロードされていません。");
                 return InternalServerError(new Exception("画像ファイルがアップロードされていません。"));
             }
             if (contents.Count > 1)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"UpdateFace - 複数の画像ファイルがアップロードされました。処理対象の画像ファイルは1つのみです。");
                 return InternalServerError(new Exception("複数の画像ファイルがアップロードされました。処理対象の画像ファイルは1つのみです。"));
             }
             
@@ -275,10 +305,12 @@ namespace FoxBIT.Ayonix.Controllers
                     var countFace = WebApiApplication.IPCClient.SharedObj.CountFace(base64Image);
                     if (countFace == 0)
                     {
+                        _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"UpdateFace - 画像ファイルから顔を検出できません。");
                         return InternalServerError(new Exception("画像ファイルから顔を検出できません。"));
                     }
                     if (countFace > 1)
                     {
+                        _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"UpdateFace - 画像ファイルから複数の顔を検出しました。");
                         return InternalServerError(new Exception("画像ファイルから複数の顔を検出しました。"));
                     }
 
@@ -288,9 +320,11 @@ namespace FoxBIT.Ayonix.Controllers
             }
             catch (Exception err)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"UpdateFace - {err.Message}");
                 return InternalServerError(new Exception(err.Message));
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"UpdateFace - End");
             return Ok();
         }
 
@@ -304,9 +338,12 @@ namespace FoxBIT.Ayonix.Controllers
         [Route("deleteface/{faceID}/{subID}")]
         public IHttpActionResult DeleteFace(string faceID, string subID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFace - Start Parameter[faceID:{faceID}, subID:{subID}]");
+
             // IDチェック
             if (faceID.Length != 8)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"DeleteFace - 不正なIDです。");
                 return InternalServerError(new Exception("不正なIDです。"));
             }
 
@@ -317,9 +354,11 @@ namespace FoxBIT.Ayonix.Controllers
             }
             catch (Exception err)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"DeleteFace - {err.Message}");
                 return InternalServerError(new Exception(err.Message));
             }
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"DeleteFace - End");
             return Ok();
         }
 
@@ -332,9 +371,12 @@ namespace FoxBIT.Ayonix.Controllers
         [Route("getfaceid/{faceID}")]
         public IHttpActionResult GetFaceID(string faceID)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"GetFaceID - Start Parameter[faceID:{faceID}]");
+
             // IDチェック
             if (faceID.Length != 8)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"GetFaceID - 不正なIDです。");
                 return InternalServerError(new Exception("不正なIDです。"));
             }
 
@@ -345,14 +387,17 @@ namespace FoxBIT.Ayonix.Controllers
                 resultFaceID = WebApiApplication.IPCClient.SharedObj.GetFaceID(faceID);
                 if (resultFaceID == null)
                 {
+                    _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"GetFaceID - 指定IDに該当する情報が取得できませんでした。");
                     return InternalServerError(new Exception("指定IDに該当する情報が取得できませんでした。"));
                 }
             }
             catch (Exception err)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"GetFaceID - {err.Message}");
                 return InternalServerError(new Exception(err.Message));
             }
-            
+
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"GetFaceID - End");
             return Ok(
                 new EnrolledFace()
                 {
@@ -369,9 +414,12 @@ namespace FoxBIT.Ayonix.Controllers
         [Route("compareface")]
         public async Task<IHttpActionResult> CompareFace()
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CompareFace - Start");
+
             // コンテンツが "multipart/form-data" かチェック
             if (!Request.Content.IsMimeMultipartContent())
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"CompareFace - multipart/form-data 以外はサポートされていません。");
                 throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
             }
 
@@ -384,10 +432,12 @@ namespace FoxBIT.Ayonix.Controllers
             // 画像枚数チェック
             if (contents.Count == 0)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"CompareFace - 画像ファイルがアップロードされていません。");
                 return InternalServerError(new Exception("画像ファイルがアップロードされていません。"));
             }
             if (contents.Count > 1)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"CompareFace - 複数の画像ファイルがアップロードされました。処理対象の画像ファイルは1つのみです。");
                 return InternalServerError(new Exception("複数の画像ファイルがアップロードされました。処理対象の画像ファイルは1つのみです。"));
             }
 
@@ -408,10 +458,12 @@ namespace FoxBIT.Ayonix.Controllers
                     var countFace = WebApiApplication.IPCClient.SharedObj.CountFace(base64Image);
                     if (countFace == 0)
                     {
+                        _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"CompareFace - 画像ファイルから顔を検出できません。");
                         return InternalServerError(new Exception("画像ファイルから顔を検出できません。"));
                     }
                     if (countFace > 1)
                     {
+                        _logTraceSource.TraceEvent(TraceEventType.Warning, Process.GetCurrentProcess().Id, $"CompareFace - 画像ファイルから複数の顔を検出しました。");
                         return InternalServerError(new Exception("画像ファイルから複数の顔を検出しました。"));
                     }
 
@@ -421,6 +473,7 @@ namespace FoxBIT.Ayonix.Controllers
             }
             catch (Exception err)
             {
+                _logTraceSource.TraceEvent(TraceEventType.Error, Process.GetCurrentProcess().Id, $"CompareFace - {err.Message}");
                 return InternalServerError(new Exception(err.Message));
             }
 
@@ -446,6 +499,7 @@ namespace FoxBIT.Ayonix.Controllers
                         });
                 });
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"CompareFace - End");
             return Ok(comparedFaces);
         }
 
@@ -458,8 +512,10 @@ namespace FoxBIT.Ayonix.Controllers
         [Route("facesize/min/{size}")]
         public IHttpActionResult SetMinimumFaceSize(int size)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"SetMinimumFaceSize - Start Parameter[size:{size}]");
             WebApiApplication.IPCClient.SharedObj.MinFaceSize = size;
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"SetMinimumFaceSize - End");
             return Ok();
         }
 
@@ -472,8 +528,10 @@ namespace FoxBIT.Ayonix.Controllers
         [Route("quality/min/{quality}")]
         public IHttpActionResult SetMinimumFacequality(int quality)
         {
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"SetMinimumFacequality - Start Parameter[quality:{quality}]");
             WebApiApplication.IPCClient.SharedObj.MinFaceQuality = quality;
 
+            _logTraceSource.TraceEvent(TraceEventType.Information, Process.GetCurrentProcess().Id, $"SetMinimumFacequality - End");
             return Ok();
         }
     }

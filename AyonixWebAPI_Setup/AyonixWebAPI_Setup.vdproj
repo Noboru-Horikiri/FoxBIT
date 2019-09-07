@@ -5574,7 +5574,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:FoxBIT.AyonixIPCCommon, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
+            "AssemblyAsmDisplayName" = "8:FoxBIT.AyonixIPCCommon, Version=1.1.1.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
                     "_B75AE8A64B74C32F2E0AAAF85DBB07A3"
@@ -5997,7 +5997,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:FoxBIT.AyonixDB, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
+            "AssemblyAsmDisplayName" = "8:FoxBIT.AyonixDB, Version=1.1.1.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
                     "_D2AC1E97F2734305054EE0233741F5C3"
@@ -6817,15 +6817,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:AyonixWebAPI"
-        "ProductCode" = "8:{6070DDCE-2DAD-47F9-B159-C0F6AFC4D7E1}"
-        "PackageCode" = "8:{621B67F9-D332-4C6A-8AE5-7CE4ACCD370F}"
+        "ProductCode" = "8:{0A8BA853-F055-4B7C-9ED3-736BE09A9BE1}"
+        "PackageCode" = "8:{D1834DA9-1F7C-46C9-AD0C-6427FF1C8DD0}"
         "UpgradeCode" = "8:{FB1F7E6D-E478-4B92-BCC5-1BDC7070E098}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:TRUE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.0"
+        "ProductVersion" = "8:1.1.1"
         "Manufacturer" = "8:FoxBIT"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
